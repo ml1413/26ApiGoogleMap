@@ -2,6 +2,7 @@ package com.example.a26apigooglemap.fragment
 
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -38,12 +39,14 @@ class SearchFragment : Fragment() {
     }
 
     private fun containerOnlyOnce() {
-        thisContainer?.let { thisContainer ->
-            if (mapFragment.arguments == null) {
-                thisContainer.isVisible = true
-                changeIconContainer(thisContainer)
+        if (VisibilityMapObj.visibilityContainer == null) {
+            thisContainer?.let {
+                it.isVisible = true
+                VisibilityMapObj.visibilityContainer = true
+                changeIconContainer(it)
             }
         }
+
     }
 
 

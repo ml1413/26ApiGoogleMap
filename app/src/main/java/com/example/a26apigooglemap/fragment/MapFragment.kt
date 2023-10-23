@@ -1,8 +1,9 @@
 package com.example.a26apigooglemap.fragment
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,7 +22,10 @@ import com.example.a26apigooglemap.toast
 import com.example.a26apigooglemap.viewModel.MapViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
-private const val KEY_BUNDLE = "MapFragment"
+object VisibilityMapObj {
+    var visibilityContainer: Boolean? = null
+    var visibilityFab = 0f
+}
 
 @AndroidEntryPoint
 class MapFragment : Fragment() {
@@ -35,14 +39,12 @@ class MapFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = MapFragmentBinding.inflate(inflater, container, false)
-        Log.d("TAG1", "onCreateView: Fragment")
         initField()
         clickOnSearch()
         clickOnFab()
         showHideContainerFromBundle()
+        showFabFromVisibilityObj()
         ivShowHideContainer()
-        Log.d("TAG1", "map: $this")
-
         viewModel.uiState.observe(viewLifecycleOwner) { uiState ->
             when (uiState) {
                 MapViewModel.UiState.Empty -> Unit
@@ -54,24 +56,28 @@ class MapFragment : Fragment() {
         return binding.root
     }
 
+    private fun showFabFromVisibilityObj() {
+        binding.fab.alpha = VisibilityMapObj.visibilityFab
+    }
+
     private fun ivShowHideContainer() {
         binding.ivShowContainer.setOnClickListener {
             val searchFragment =
                 childFragmentManager.findFragmentById(R.id.search_fragment_container)
             if (searchFragment is SearchFragment) {
-                visibilityContainer(binding.searchFragmentContainer)
+                binding.searchFragmentContainer.isVisible =
+                    !binding.searchFragmentContainer.isVisible
+                VisibilityMapObj.visibilityContainer = binding.searchFragmentContainer.isVisible
+                changeIconIVShowHideContainer(binding.searchFragmentContainer)
             }
         }
     }
 
     private fun showHideContainerFromBundle() {
         // восстановление состояния контэйнера из бандл
-        this.arguments?.let {
-            binding.searchFragmentContainer.isVisible = requireArguments().getBoolean(KEY_BUNDLE)
-            changeIconIVShowHideContainer(binding.searchFragmentContainer)
-        }
+        VisibilityMapObj.visibilityContainer?.let { binding.searchFragmentContainer.isVisible = it }
+        changeIconIVShowHideContainer(binding.searchFragmentContainer)
     }
-
 
     private fun initField() {
         map = (childFragmentManager.findFragmentById(R.id.map_fragment_container) as? Map)!!
@@ -91,7 +97,7 @@ class MapFragment : Fragment() {
     }
 
     private fun clickOnFab() {
-        binding.fab2.setOnClickListener {
+        binding.fab.setOnClickListener {
 
             val waypointCoordinates = CoordinateLatLng1.placeCoordinate.drop(0).take(10)
             val waypointCoordinateString = waypointCoordinates.joinToString(separator = "|")
@@ -103,15 +109,6 @@ class MapFragment : Fragment() {
         }
     }
 
-
-    private fun visibilityContainer(view: View) {
-        view.isVisible = !view.isVisible
-        // change icon
-        changeIconIVShowHideContainer(view)
-        //запись положения контейнера в бандл
-        this.arguments =
-            Bundle().apply { putBoolean(KEY_BUNDLE, binding.searchFragmentContainer.isVisible) }
-    }
 
     private fun changeIconIVShowHideContainer(view: View) {
         if (view.isVisible) binding.ivShowContainer.setImageDrawable(
@@ -131,13 +128,29 @@ class MapFragment : Fragment() {
         binding.ivSearch.setOnClickListener {
             //разрешение на передачу данных только 1 раз
             exportData = true
+            //запрос по геолокации
             val location = binding.etLocation.text.toString()
             val radius = binding.etRadius.text.toString()
             viewModel.getDataNearbyPlaces(location = location, radius = radius)
+            //приблизить карту
             map.animationCameraMap(location)
             hideKeyboard()
+
+            showFab()
         }
 
+    }
+
+    private fun showFab() {
+        val animator = ObjectAnimator.ofFloat(binding.fab, View.ALPHA, 0f, 1f)
+        animator.duration = 1000
+        animator.startDelay = 1000
+        val animator2 = ObjectAnimator.ofFloat(binding.fab, View.ALPHA, 0.6f, 1f)
+        animator2.repeatCount = 2
+        val setAnimation = AnimatorSet()
+        setAnimation.play(animator).before(animator2)
+        setAnimation.start()
+        VisibilityMapObj.visibilityFab = 1f
     }
 
     private fun hideKeyboard() {
