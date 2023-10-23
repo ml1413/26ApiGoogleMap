@@ -1,7 +1,10 @@
 package com.example.a26apigooglemap
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.a26apigooglemap.databinding.ActivityMainBinding
@@ -50,5 +53,7 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+
+
 
 }

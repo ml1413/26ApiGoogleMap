@@ -5,8 +5,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import com.example.a26apigooglemap.GAccount
+import com.example.a26apigooglemap.R
 import com.example.a26apigooglemap.databinding.FragmentSignInBinding
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -34,6 +37,7 @@ class SignInFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
     }
+
 
     private fun animationButton() {
         animator = ObjectAnimator.ofFloat(binding.btSignIn, View.ALPHA, 0.8f, 1f)

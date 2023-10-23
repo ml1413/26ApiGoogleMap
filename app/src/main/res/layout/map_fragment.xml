@@ -15,7 +15,7 @@
             android:id="@+id/map_fragment_container"
             android:name="com.example.a26apigooglemap.fragment.Map"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1" />
 
         <androidx.cardview.widget.CardView
@@ -36,8 +36,9 @@
 
                 <ImageView
                     android:layout_width="42dp"
+                    android:id="@+id/iv_show_container"
                     android:layout_height="42dp"
-                    android:src="@drawable/baseline_keyboard_arrow_down_24" />
+                    android:src="@drawable/baseline_keyboard_arrow_up_24" />
 
                 <EditText
                     android:id="@+id/et_radius"
@@ -70,10 +71,11 @@
         </androidx.cardview.widget.CardView>
 
         <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/search_fragment"
+            android:id="@+id/search_fragment_container"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:visibility="gone" />
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton

@@ -1,9 +1,15 @@
 package com.example.a26apigooglemap.fragment
 
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
+import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.a26apigooglemap.R
@@ -15,23 +21,29 @@ import com.example.a26apigooglemap.toast
 import com.example.a26apigooglemap.viewModel.MapViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
+private const val KEY_BUNDLE = "MapFragment"
+
 @AndroidEntryPoint
 class MapFragment : Fragment() {
     private lateinit var viewModel: MapViewModel
     private lateinit var binding: MapFragmentBinding
     private lateinit var map: Map
-
+    private var exportData = false
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = MapFragmentBinding.inflate(inflater, container, false)
+        Log.d("TAG1", "onCreateView: Fragment")
         initField()
         clickOnSearch()
         clickOnFab()
-        viewModel.uiState.observe(viewLifecycleOwner)
-        { uiState ->
+        showHideContainerFromBundle()
+        ivShowHideContainer()
+        Log.d("TAG1", "map: $this")
+
+        viewModel.uiState.observe(viewLifecycleOwner) { uiState ->
             when (uiState) {
                 MapViewModel.UiState.Empty -> Unit
                 MapViewModel.UiState.Loading -> showProgressBar()
@@ -42,9 +54,40 @@ class MapFragment : Fragment() {
         return binding.root
     }
 
+    private fun ivShowHideContainer() {
+        binding.ivShowContainer.setOnClickListener {
+            val searchFragment =
+                childFragmentManager.findFragmentById(R.id.search_fragment_container)
+            if (searchFragment is SearchFragment) {
+                visibilityContainer(binding.searchFragmentContainer)
+            }
+        }
+    }
+
+    private fun showHideContainerFromBundle() {
+        // восстановление состояния контэйнера из бандл
+        this.arguments?.let {
+            binding.searchFragmentContainer.isVisible = requireArguments().getBoolean(KEY_BUNDLE)
+            changeIconIVShowHideContainer(binding.searchFragmentContainer)
+        }
+    }
+
+
     private fun initField() {
         map = (childFragmentManager.findFragmentById(R.id.map_fragment_container) as? Map)!!
         viewModel = ViewModelProvider(this)[MapViewModel::class.java]
+    }
+
+    private fun whenResponse(responseBody: Any?) {
+        when (responseBody) {
+            is DirectionsResponse -> map.showMapBuildLine(responseBody)
+            is PlacesResponse -> {
+                map.showMapNearbyPlaces(responseBody)
+                exportPlacesResponseToSearchFragment(responseBody)
+            }
+
+            is ComplexRouteResponse -> map.showMapComplexRoute(responseBody)
+        }
     }
 
     private fun clickOnFab() {
@@ -60,33 +103,62 @@ class MapFragment : Fragment() {
         }
     }
 
+
+    private fun visibilityContainer(view: View) {
+        view.isVisible = !view.isVisible
+        // change icon
+        changeIconIVShowHideContainer(view)
+        //запись положения контейнера в бандл
+        this.arguments =
+            Bundle().apply { putBoolean(KEY_BUNDLE, binding.searchFragmentContainer.isVisible) }
+    }
+
+    private fun changeIconIVShowHideContainer(view: View) {
+        if (view.isVisible) binding.ivShowContainer.setImageDrawable(
+            ContextCompat.getDrawable(requireContext(), R.drawable.baseline_keyboard_arrow_down_24)
+        ) else {
+            binding.ivShowContainer.setImageDrawable(
+                ContextCompat.getDrawable(
+                    requireContext(),
+                    R.drawable.baseline_keyboard_arrow_up_24
+                )
+            )
+        }
+    }
+
+
     private fun clickOnSearch() {
         binding.ivSearch.setOnClickListener {
+            //разрешение на передачу данных только 1 раз
+            exportData = true
             val location = binding.etLocation.text.toString()
             val radius = binding.etRadius.text.toString()
             viewModel.getDataNearbyPlaces(location = location, radius = radius)
             map.animationCameraMap(location)
+            hideKeyboard()
         }
+
     }
 
-
-    private fun whenResponse(responseBody: Any?) {
-        when (responseBody) {
-            is DirectionsResponse -> map.showMapBuildLine(responseBody)
-            is PlacesResponse -> {
-                map.showMapNearbyPlaces(responseBody)
-                exportPlacesResponseToSearchFragment(responseBody)
-            }
-
-            is ComplexRouteResponse -> map.showMapComplexRoute(responseBody)
+    private fun hideKeyboard() {
+        val view = this.requireActivity().currentFocus
+        view?.let {
+            val hideMe =
+                requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            hideMe.hideSoftInputFromWindow(view.windowToken, 0)
         }
+        requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
     }
+
 
     private fun exportPlacesResponseToSearchFragment(responseBody: PlacesResponse) {
-        val searchFragment = SearchFragment.newInstance(responseBody)
-        childFragmentManager.beginTransaction()
-            .replace(R.id.search_fragment, searchFragment)
-            .commit()
+        if (exportData) {
+            val searchFragment = SearchFragment.newInstance(responseBody)
+            childFragmentManager.beginTransaction()
+                .replace(R.id.search_fragment_container, searchFragment)
+                .commit()
+            exportData = false
+        }
     }
 
 

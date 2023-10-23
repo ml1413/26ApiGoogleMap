@@ -1,25 +1,30 @@
 package com.example.a26apigooglemap.fragment
 
-import android.app.ActionBar.LayoutParams
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
+import android.widget.ImageView
+import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentContainerView
+import com.example.a26apigooglemap.R
 import com.example.a26apigooglemap.Request.PlacesResponse
 import com.example.a26apigooglemap.databinding.FragmentSearchBinding
 import com.example.a26apigooglemap.recyclerView.RecyclerAdapter
-import javax.inject.Inject
 
-private const val KEY_BUNDLE = "key"
+private const val KEY_BUNDLE = "SearchFragment"
 
-
-class SearchFragment @Inject constructor() : Fragment() {
+class SearchFragment : Fragment() {
     private lateinit var binding: FragmentSearchBinding
     private var placesResponse: PlacesResponse? = null
     private lateinit var adapter: RecyclerAdapter
+    private var thisContainer: FragmentContainerView? = null
+    private var iVShowHideKeyboard: ImageView? = null
+    private lateinit var mapFragment: Fragment
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -28,20 +33,46 @@ class SearchFragment @Inject constructor() : Fragment() {
         initField()
         placesResponse?.let { adapter.setList(listResults = it.results) }
         binding.recycler.adapter = adapter
-
-        val params = LinearLayout.LayoutParams(
-            LayoutParams.WRAP_CONTENT,
-            LayoutParams.WRAP_CONTENT,
-        )
-        params.weight = 1f
-        binding.recycler.layoutParams = params
-
+        containerOnlyOnce()
         return binding.root
     }
+
+    private fun containerOnlyOnce() {
+        thisContainer?.let { thisContainer ->
+            if (mapFragment.arguments == null) {
+                thisContainer.isVisible = true
+                changeIconContainer(thisContainer)
+            }
+        }
+    }
+
 
     private fun initField() {
         placesResponse = getPlacesResponseArgument()
         adapter = RecyclerAdapter()
+        parentFragment?.let { mapFragment = it }
+        thisContainer = mapFragment.view?.rootView?.findViewById(R.id.search_fragment_container)
+        iVShowHideKeyboard = mapFragment.view?.rootView?.findViewById(R.id.iv_show_container)
+    }
+
+    private fun changeIconContainer(view: View) {
+        // change icon
+        iVShowHideKeyboard?.let {
+            if (view.isVisible) it.setImageDrawable(
+                ContextCompat.getDrawable(
+                    requireContext(),
+                    R.drawable.baseline_keyboard_arrow_down_24
+                )
+            ) else {
+                it.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        requireContext(),
+                        R.drawable.baseline_keyboard_arrow_up_24
+                    )
+                )
+            }
+        }
+
     }
 
 

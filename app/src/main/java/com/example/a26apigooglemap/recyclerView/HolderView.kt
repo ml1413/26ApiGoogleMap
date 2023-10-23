@@ -3,6 +3,7 @@ package com.example.a26apigooglemap.recyclerView
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.a26apigooglemap.R
 import com.example.a26apigooglemap.Request.Results
 import com.example.a26apigooglemap.databinding.ItemPhotoBinding
 
@@ -15,9 +16,10 @@ class HolderPlace(private val view: View) : RecyclerView.ViewHolder(view) {
     val binding = ItemPhotoBinding.bind(view)
     fun initView(results: Results) {
         binding.tv.text = results.name
-
         Glide.with(view.context).load(
-            URL_IN+"${results.photos[0].photo_reference}"+ URL_END
-        ).into(binding.itemPhoto)
+            URL_IN + "${results.photos[0].photo_reference}" + URL_END
+        )
+            .placeholder(R.drawable.baseline_image_search_24)
+            .into(binding.itemPhoto)
     }
 }
