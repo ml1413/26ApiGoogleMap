@@ -42,9 +42,9 @@ class MapFragment : Fragment() {
         initField()
         clickOnSearch()
         clickOnFab()
+        clickIvShowHideContainer()
         showHideContainerFromBundle()
         showFabFromVisibilityObj()
-        ivShowHideContainer()
         viewModel.uiState.observe(viewLifecycleOwner) { uiState ->
             when (uiState) {
                 MapViewModel.UiState.Empty -> Unit
@@ -56,21 +56,32 @@ class MapFragment : Fragment() {
         return binding.root
     }
 
+    private fun initField() {
+        childFragmentManager.findFragmentById(R.id.map_fragment_container).let { map = it as Map }
+        viewModel = ViewModelProvider(this)[MapViewModel::class.java]
+
+    }
+
+
     private fun showFabFromVisibilityObj() {
         binding.fab.alpha = VisibilityMapObj.visibilityFab
     }
 
-    private fun ivShowHideContainer() {
+    private fun clickIvShowHideContainer() {
         binding.ivShowContainer.setOnClickListener {
             val searchFragment =
                 childFragmentManager.findFragmentById(R.id.search_fragment_container)
-            if (searchFragment is SearchFragment) {
-                binding.searchFragmentContainer.isVisible =
-                    !binding.searchFragmentContainer.isVisible
-                VisibilityMapObj.visibilityContainer = binding.searchFragmentContainer.isVisible
-                changeIconIVShowHideContainer(binding.searchFragmentContainer)
+            if (searchFragment != null) {
+                showHideContainer()
             }
         }
+    }
+
+    private fun showHideContainer() {
+        binding.searchFragmentContainer.isVisible =
+            !binding.searchFragmentContainer.isVisible
+        VisibilityMapObj.visibilityContainer = binding.searchFragmentContainer.isVisible
+        changeIconIVShowHideContainer(binding.searchFragmentContainer)
     }
 
     private fun showHideContainerFromBundle() {
@@ -79,10 +90,6 @@ class MapFragment : Fragment() {
         changeIconIVShowHideContainer(binding.searchFragmentContainer)
     }
 
-    private fun initField() {
-        map = (childFragmentManager.findFragmentById(R.id.map_fragment_container) as? Map)!!
-        viewModel = ViewModelProvider(this)[MapViewModel::class.java]
-    }
 
     private fun whenResponse(responseBody: Any?) {
         when (responseBody) {
@@ -99,11 +106,11 @@ class MapFragment : Fragment() {
     private fun clickOnFab() {
         binding.fab.setOnClickListener {
 
-            val waypointCoordinates = CoordinateLatLng1.placeCoordinate.drop(0).take(10)
+            val waypointCoordinates = CoordinateLatLng.placeCoordinate.drop(0).take(10)
             val waypointCoordinateString = waypointCoordinates.joinToString(separator = "|")
             viewModel.getDataComplexRoute(
-                originId = CoordinateLatLng1.placeCoordinate[0],
-                destinationId = CoordinateLatLng1.placeCoordinate.last(),
+                originId = CoordinateLatLng.placeCoordinate[0],
+                destinationId = CoordinateLatLng.placeCoordinate.last(),
                 waypoints = waypointCoordinateString
             )
         }
@@ -129,14 +136,17 @@ class MapFragment : Fragment() {
             //разрешение на передачу данных только 1 раз
             exportData = true
             //запрос по геолокации
-            val location = binding.etLocation.text.toString()
-            val radius = binding.etRadius.text.toString()
-            viewModel.getDataNearbyPlaces(location = location, radius = radius)
-            //приблизить карту
-            map.animationCameraMap(location)
-            hideKeyboard()
-
-            showFab()
+            if (binding.etLocation.text.isNotBlank() && binding.etRadius.text.isNotBlank()) {
+                val location = binding.etLocation.text.toString()
+                val radius = binding.etRadius.text.toString()
+                viewModel.getDataNearbyPlaces(location = location, radius = radius)
+                //приблизить карту
+                map.animationCameraMap(location)
+                hideKeyboard()
+                showFab()
+            }else{
+                toast(requireContext(), getString(R.string.text_not_found))
+            }
         }
 
     }

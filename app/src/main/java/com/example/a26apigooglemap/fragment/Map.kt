@@ -10,12 +10,10 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.maps.android.PolyUtil
 
-object CoordinateLatLng1 {
+object CoordinateLatLng {
     val coordinateLatLng = mutableListOf<LatLng>()
     val placeCoordinate = mutableListOf<String>()
 }
-const val TEST_LOKATION1 = "50.451028649731455,30.524785575478834"
-
 class Map : SupportMapFragment() {
 
     fun showMapComplexRoute(complexResponse: ComplexRouteResponse) {
@@ -24,7 +22,7 @@ class Map : SupportMapFragment() {
             val decodePath = PolyUtil.decode(playLinePoints)
             val polygonOptions = PolylineOptions().addAll(decodePath)
             googleMap.addPolyline(polygonOptions)
-            CoordinateLatLng1.coordinateLatLng.forEach { latlng ->
+            CoordinateLatLng.coordinateLatLng.forEach { latlng ->
                 val coordinates = LatLng(
                     latlng.latitude,
                     latlng.longitude
@@ -42,8 +40,8 @@ class Map : SupportMapFragment() {
                     results.geometry.location.lat,
                     results.geometry.location.lng
                 )
-                CoordinateLatLng1.coordinateLatLng.add(coordinates)
-                CoordinateLatLng1.placeCoordinate
+                CoordinateLatLng.coordinateLatLng.add(coordinates)
+                CoordinateLatLng.placeCoordinate
                     .add("${results.geometry.location.lat},${results.geometry.location.lng}")
                 googleMap.addMarker(MarkerOptions().position(coordinates))
 
@@ -53,14 +51,14 @@ class Map : SupportMapFragment() {
     }
 
 
-     fun animationCameraMap(locationFoZoom: String) {
-        val lat = TEST_LOKATION1.substring(0, TEST_LOKATION1.indexOf(",")).toDouble()
-        val lon = TEST_LOKATION1.substring(TEST_LOKATION1.indexOf(",") + 1).toDouble()
+     fun animationCameraMap(locationFoZoom: String,zoom :Float = 13f) {
+        val lat = locationFoZoom.substring(0, locationFoZoom.indexOf(",")).toDouble()
+        val lon = locationFoZoom.substring(locationFoZoom.indexOf(",") + 1).toDouble()
         getMapAsync { googleMap ->
             val coordinationLviv = LatLng(lat, lon)
             googleMap.addMarker(MarkerOptions().position(coordinationLviv))
 //            приблизить камеру
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(coordinationLviv, 13f))
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(coordinationLviv, zoom))
         }
     }
 

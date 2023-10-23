@@ -2,7 +2,6 @@ package com.example.a26apigooglemap.fragment
 
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,8 +12,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
 import com.example.a26apigooglemap.R
 import com.example.a26apigooglemap.Request.PlacesResponse
+import com.example.a26apigooglemap.Request.Results
 import com.example.a26apigooglemap.databinding.FragmentSearchBinding
 import com.example.a26apigooglemap.recyclerView.RecyclerAdapter
+import com.example.a26apigooglemap.toast
 
 private const val KEY_BUNDLE = "SearchFragment"
 
@@ -32,10 +33,31 @@ class SearchFragment : Fragment() {
     ): View? {
         binding = FragmentSearchBinding.inflate(inflater, container, false)
         initField()
-        placesResponse?.let { adapter.setList(listResults = it.results) }
-        binding.recycler.adapter = adapter
+        setListInRecyclerViewAdapter()
         containerOnlyOnce()
         return binding.root
+    }
+
+    private fun initField() {
+        placesResponse = getPlacesResponseArgument()
+        adapter = RecyclerAdapter { model -> getModel(model) }
+        parentFragment?.let { mapFragment = it }
+        thisContainer = mapFragment.view?.rootView?.findViewById(R.id.search_fragment_container)
+        iVShowHideKeyboard = mapFragment.view?.rootView?.findViewById(R.id.iv_show_container)
+    }
+
+    private fun getModel(results: Results) {
+        toast(requireContext(), results.name)
+        val map = parentFragmentManager.findFragmentById(R.id.map_fragment_container) as Map
+        val location = "${results.geometry.location.lat},${results.geometry.location.lng}"
+        map.animationCameraMap(locationFoZoom = location, zoom = 15f)
+
+    }
+
+
+    private fun setListInRecyclerViewAdapter() {
+        placesResponse?.let { adapter.setList(listResults = it.results) }
+        binding.recycler.adapter = adapter
     }
 
     private fun containerOnlyOnce() {
@@ -49,14 +71,6 @@ class SearchFragment : Fragment() {
 
     }
 
-
-    private fun initField() {
-        placesResponse = getPlacesResponseArgument()
-        adapter = RecyclerAdapter()
-        parentFragment?.let { mapFragment = it }
-        thisContainer = mapFragment.view?.rootView?.findViewById(R.id.search_fragment_container)
-        iVShowHideKeyboard = mapFragment.view?.rootView?.findViewById(R.id.iv_show_container)
-    }
 
     private fun changeIconContainer(view: View) {
         // change icon
