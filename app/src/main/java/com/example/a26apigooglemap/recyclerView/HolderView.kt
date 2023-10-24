@@ -8,7 +8,7 @@ import com.example.a26apigooglemap.Request.Results
 import com.example.a26apigooglemap.databinding.ItemPhotoBinding
 
 private const val URL_IN =
-    "https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photo_reference="
+    "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference="
 
 private const val URL_END = "&key=AIzaSyDlely2vEZ0ymNqr4SLZIn54Ak5xzvoNuk"
 

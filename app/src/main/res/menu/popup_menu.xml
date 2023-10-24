@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/i500"
+        android:title="search radius : 500" />
+        <item
+        android:id="@+id/i1000"
+        android:title="search radius : 1000" />
+        <item
+        android:id="@+id/i1500"
+        android:title="search radius : 1500" />
+        <item
+        android:id="@+id/i2000"
+        android:title="search radius : 2000" />
+        <item
+        android:id="@+id/i2500"
+        android:title="search radius : 2500" />
+        <item
+        android:id="@+id/i3000"
+        android:title="search radius : 3000" />
+
+</menu>

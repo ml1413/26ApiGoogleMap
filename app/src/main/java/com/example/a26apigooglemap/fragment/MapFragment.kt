@@ -4,13 +4,14 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
-import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -23,10 +24,12 @@ import com.example.a26apigooglemap.progressBar
 import com.example.a26apigooglemap.toast
 import com.example.a26apigooglemap.viewModel.MapViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.concurrent.thread
 
-object VisibilityMapObj {
+object SaveStateMapObj {
     var visibilityContainer: Boolean? = null
-    var visibilityFab = 0f
+    var alphaFab = 0f
+    var radius = "2000"
 }
 
 @AndroidEntryPoint
@@ -45,9 +48,11 @@ class MapFragment : Fragment() {
         initField()
         clickOnSearch()
         clickOnFab()
+        clickOnRadius()
         clickIvShowHideContainer()
         showHideContainerFromBundle()
         showFabFromVisibilityObj()
+        setValueInTVRadius(SaveStateMapObj.radius)
         viewModel.uiState.observe(viewLifecycleOwner) { uiState ->
             when (uiState) {
                 MapViewModel.UiState.Empty -> Unit
@@ -59,6 +64,45 @@ class MapFragment : Fragment() {
         return binding.root
     }
 
+    private fun clickOnRadius() {
+        binding.ivRadius.setOnClickListener {
+            shopPopUpMenu(it)
+        }
+    }
+
+    private fun shopPopUpMenu(v: View) {
+        PopupMenu(requireContext(), v).apply {
+            setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.i500 -> SaveStateMapObj.radius = "500"
+                    R.id.i1000 -> SaveStateMapObj.radius = "1000"
+                    R.id.i1500 -> SaveStateMapObj.radius = "1500"
+                    R.id.i2000 -> SaveStateMapObj.radius = "2000"
+                    R.id.i2500 -> SaveStateMapObj.radius = "2500"
+                    R.id.i3000 -> SaveStateMapObj.radius = "3000"
+                }
+                setValueInTVRadius(SaveStateMapObj.radius)
+                true
+            }
+            inflate(R.menu.popup_menu)
+            show()
+        }
+
+    }
+
+    private fun setValueInTVRadius(radius: String) {
+        binding.tvRadius.text = resources.getString(R.string.radius,"")
+        thread {
+            radius.split("")
+                .forEach { leter ->
+                    Thread.sleep(100)
+                    requireActivity().runOnUiThread {
+                        binding.tvRadius.append(leter)
+                    }
+                }
+        }
+    }
+
     private fun initField() {
         childFragmentManager.findFragmentById(R.id.map_fragment_container).let { map = it as Map }
         viewModel = ViewModelProvider(this)[MapViewModel::class.java]
@@ -67,7 +111,7 @@ class MapFragment : Fragment() {
 
 
     private fun showFabFromVisibilityObj() {
-        binding.fab.alpha = VisibilityMapObj.visibilityFab
+        binding.fab.alpha = SaveStateMapObj.alphaFab
     }
 
     private fun clickIvShowHideContainer() {
@@ -83,13 +127,13 @@ class MapFragment : Fragment() {
     private fun showHideContainer() {
         binding.searchFragmentContainer.isVisible =
             !binding.searchFragmentContainer.isVisible
-        VisibilityMapObj.visibilityContainer = binding.searchFragmentContainer.isVisible
+        SaveStateMapObj.visibilityContainer = binding.searchFragmentContainer.isVisible
         changeIconIVShowHideContainer(binding.searchFragmentContainer)
     }
 
     private fun showHideContainerFromBundle() {
         // восстановление состояния контэйнера из бандл
-        VisibilityMapObj.visibilityContainer?.let { binding.searchFragmentContainer.isVisible = it }
+        SaveStateMapObj.visibilityContainer?.let { binding.searchFragmentContainer.isVisible = it }
         changeIconIVShowHideContainer(binding.searchFragmentContainer)
     }
 
@@ -139,9 +183,9 @@ class MapFragment : Fragment() {
             //разрешение на передачу данных только 1 раз
             exportData = true
             //запрос по геолокации
-            if (binding.etLocation.text.isNotBlank() && binding.etRadius.text.isNotBlank()) {
+            if (binding.etLocation.text.isNotBlank()) {
                 val location = binding.etLocation.text.toString()
-                val radius = binding.etRadius.text.toString()
+                val radius = SaveStateMapObj.radius
                 viewModel.getDataNearbyPlaces(location = location, radius = radius)
                 //приблизить карту
                 map.animationCameraMap(location)
@@ -163,7 +207,7 @@ class MapFragment : Fragment() {
         val setAnimation = AnimatorSet()
         setAnimation.play(animator).before(animator2)
         setAnimation.start()
-        VisibilityMapObj.visibilityFab = 1f
+        SaveStateMapObj.alphaFab = 1f
     }
 
     private fun hideKeyboard() {

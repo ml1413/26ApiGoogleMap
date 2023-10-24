@@ -2,6 +2,7 @@ package com.example.a26apigooglemap.fragment
 
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -36,13 +37,7 @@ class SearchFragment : Fragment() {
         binding = FragmentSearchBinding.inflate(inflater, container, false)
         initField()
         setListInRecyclerViewAdapter()
-        thread {
-            Thread.sleep(2000)
-            requireActivity().runOnUiThread {
-                containerOnlyOnce()
-            }
-        }
-
+        containerOnlyOnce()
         return binding.root
     }
 
@@ -56,7 +51,6 @@ class SearchFragment : Fragment() {
     }
 
     private fun getModel(results: Results) {
-        toast(requireContext(), results.name)
         val map = parentFragmentManager.findFragmentById(R.id.map_fragment_container) as Map
         val location = "${results.geometry.location.lat},${results.geometry.location.lng}"
         map.animationCameraMap(locationFoZoom = location, zoom = 15f)
@@ -70,13 +64,21 @@ class SearchFragment : Fragment() {
     }
 
     private fun containerOnlyOnce() {
-        if (VisibilityMapObj.visibilityContainer == null) {
-            thisContainer?.let {
-                it.isVisible = true
-                VisibilityMapObj.visibilityContainer = true
-                changeIconContainer(it)
+        thread {
+            Thread.sleep(1500)
+            requireActivity().runOnUiThread{
+                //___________________________________________________________________
+                if (SaveStateMapObj.visibilityContainer == null) {
+                    thisContainer?.let {
+                        it.isVisible = true
+                        SaveStateMapObj.visibilityContainer = true
+                        changeIconContainer(it)
+                    }
+                }
+                //__________________________________________________________________
             }
         }
+
 
     }
 
