@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import androidx.core.content.ContextCompat
+import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -18,6 +19,7 @@ import com.example.a26apigooglemap.Request.ComplexRouteResponse
 import com.example.a26apigooglemap.Request.DirectionsResponse
 import com.example.a26apigooglemap.Request.PlacesResponse
 import com.example.a26apigooglemap.databinding.MapFragmentBinding
+import com.example.a26apigooglemap.progressBar
 import com.example.a26apigooglemap.toast
 import com.example.a26apigooglemap.viewModel.MapViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -39,6 +41,7 @@ class MapFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = MapFragmentBinding.inflate(inflater, container, false)
+        progressBar.isVisible = false
         initField()
         clickOnSearch()
         clickOnFab()
@@ -144,7 +147,7 @@ class MapFragment : Fragment() {
                 map.animationCameraMap(location)
                 hideKeyboard()
                 showFab()
-            }else{
+            } else {
                 toast(requireContext(), getString(R.string.text_not_found))
             }
         }

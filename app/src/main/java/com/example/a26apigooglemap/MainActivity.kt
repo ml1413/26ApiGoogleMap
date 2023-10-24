@@ -1,11 +1,10 @@
 package com.example.a26apigooglemap
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.view.WindowManager
-import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import com.example.a26apigooglemap.databinding.ActivityMainBinding
 import com.example.a26apigooglemap.fragment.MapFragment
@@ -22,6 +21,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        progressBar = binding.progressbar
         //запуск нужного фрагмента (если аккаунт null франмент с аутентификацией если не null фрагмент с картой)
         launchFragment()
     }
@@ -45,15 +45,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun launchFragment() {
         if (account.getGoogleAccount() == null) addFragment(SignInFragment(), true)
-
         if (account.getGoogleAccount() != null
             && supportFragmentManager.findFragmentById(R.id.container_fragment) !is MapFragment
         ) {
+            progressBar.isVisible = true
             addFragment(MapFragment())
         }
 
     }
-
 
 
 }

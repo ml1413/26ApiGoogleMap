@@ -19,7 +19,7 @@
             android:id="@+id/search_fragment_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_weight="1.6"
             android:visibility="gone" />
 
         <androidx.fragment.app.FragmentContainerView

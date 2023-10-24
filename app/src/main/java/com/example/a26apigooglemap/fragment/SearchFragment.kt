@@ -10,12 +10,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
+import androidx.recyclerview.widget.PagerSnapHelper
 import com.example.a26apigooglemap.R
 import com.example.a26apigooglemap.Request.PlacesResponse
 import com.example.a26apigooglemap.Request.Results
 import com.example.a26apigooglemap.databinding.FragmentSearchBinding
 import com.example.a26apigooglemap.recyclerView.RecyclerAdapter
 import com.example.a26apigooglemap.toast
+import kotlin.concurrent.thread
 
 private const val KEY_BUNDLE = "SearchFragment"
 
@@ -34,13 +36,20 @@ class SearchFragment : Fragment() {
         binding = FragmentSearchBinding.inflate(inflater, container, false)
         initField()
         setListInRecyclerViewAdapter()
-        containerOnlyOnce()
+        thread {
+            Thread.sleep(2000)
+            requireActivity().runOnUiThread {
+                containerOnlyOnce()
+            }
+        }
+
         return binding.root
     }
 
     private fun initField() {
         placesResponse = getPlacesResponseArgument()
         adapter = RecyclerAdapter { model -> getModel(model) }
+        PagerSnapHelper().apply { attachToRecyclerView(binding.recycler) }
         parentFragment?.let { mapFragment = it }
         thisContainer = mapFragment.view?.rootView?.findViewById(R.id.search_fragment_container)
         iVShowHideKeyboard = mapFragment.view?.rootView?.findViewById(R.id.iv_show_container)
