@@ -2,7 +2,6 @@ package com.example.a26apigooglemap.fragment
 
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,13 +18,10 @@ import com.example.a26apigooglemap.databinding.FragmentSearchBinding
 import com.example.a26apigooglemap.recyclerView.RecyclerAdapter
 import kotlin.concurrent.thread
 
-interface Marker {
-    fun smoothPosition(name: String)
-}
 
 private const val KEY_BUNDLE = "SearchFragment"
 
-class SearchFragment : Fragment(), Marker {
+class SearchFragment : Fragment() {
     private lateinit var binding: FragmentSearchBinding
     private var placesResponse: PlacesResponse? = null
     private lateinit var adapter: RecyclerAdapter
@@ -41,6 +37,17 @@ class SearchFragment : Fragment(), Marker {
         initField()
         setListInRecyclerViewAdapter()
         containerOnlyOnce()
+        val map = parentFragmentManager.findFragmentById(R.id.map_fragment_container) as Map
+        map.getMapAsync {
+            it.setOnMarkerClickListener { marker ->
+                placesResponse?.let { placesResponse ->
+                    val resultSingle = placesResponse.results.filter { it.name == marker.title }[0]
+                    val index = placesResponse.results.indexOf(resultSingle)
+                    binding.recycler.smoothScrollToPosition(index)
+                }
+                false
+            }
+        }
         return binding.root
     }
 
@@ -68,12 +75,12 @@ class SearchFragment : Fragment(), Marker {
     }
 
     private fun containerOnlyOnce() {
-        thread {
-            Thread.sleep(1500)
-            requireActivity().runOnUiThread {
                 //___________________________________________________________________
                 if (SaveStateMapObj.visibilityContainer == null) {
                     thisContainer?.let {
+                        thread {
+                            Thread.sleep(1500)
+                            requireActivity().runOnUiThread {
                         it.isVisible = true
                         SaveStateMapObj.visibilityContainer = true
                         changeIconContainer(it)
@@ -130,11 +137,5 @@ class SearchFragment : Fragment(), Marker {
         }
     }
 
-    override fun smoothPosition(name: String) {
-        placesResponse?.let { placesResponse ->
-            val resultSingle = placesResponse.results.filter { it.name == name }[0]
-            val index = placesResponse.results.indexOf(resultSingle)
-            binding.recycler.smoothScrollToPosition(index)
-        }
-    }
+
 }

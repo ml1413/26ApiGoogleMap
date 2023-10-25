@@ -19,10 +19,8 @@ object CoordinateLatLng {
     val placeCoordinate = mutableListOf<String>()
 }
 
-class Map : SupportMapFragment(), OnMapReadyCallback {
-    init {
-        getMapAsync(this)
-    }
+class Map : SupportMapFragment() {
+
 
     fun showMapComplexRoute(complexResponse: ComplexRouteResponse) {
         getMapAsync { googleMap ->
@@ -93,14 +91,4 @@ class Map : SupportMapFragment(), OnMapReadyCallback {
             googleMap.addPolyline(polygonOptions)
         }
     }
-
-    override fun onMapReady(p0: GoogleMap) {
-        p0.setOnMarkerClickListener {
-            val searchFragment = parentFragmentManager.findFragmentById(R.id.search_fragment_container) as Marker
-            searchFragment.smoothPosition(name = it.title.toString())
-            false
-        }
-    }
-
-
 }
