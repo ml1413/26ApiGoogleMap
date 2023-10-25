@@ -2,7 +2,6 @@ package com.example.a26apigooglemap.fragment
 
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +16,7 @@ import com.example.a26apigooglemap.Request.PlacesResponse
 import com.example.a26apigooglemap.Request.Results
 import com.example.a26apigooglemap.databinding.FragmentSearchBinding
 import com.example.a26apigooglemap.recyclerView.RecyclerAdapter
+import com.example.a26apigooglemap.toast
 import kotlin.concurrent.thread
 
 
@@ -38,14 +38,20 @@ class SearchFragment : Fragment() {
         initField()
         setListInRecyclerViewAdapter()
         containerOnlyOnce()
+
         val map = parentFragmentManager.findFragmentById(R.id.map_fragment_container) as Map
         map.getMapAsync {
-           it.setOnMarkerClickListener { marker ->
-               binding.recycler
+            it.setOnMarkerClickListener { marker ->
+                binding.recycler
                 placesResponse?.let { placesResponse ->
-                    val resultSingle = placesResponse.results.filter { it.name == marker.title }[0]
-                    val index = placesResponse.results.indexOf(resultSingle)
-                    binding.recycler.smoothScrollToPosition(index)
+                    val name = marker.title
+                    if (name?.isBlank() == true) {
+                        toast(requireContext(), "неизвестное место !!")
+                    } else {
+                        val resultSingle = placesResponse.results.filter { it.name == name }[0]
+                        val index = placesResponse.results.indexOf(resultSingle)
+                        binding.recycler.smoothScrollToPosition(index)
+                    }
                 }
                 false
             }
@@ -77,12 +83,12 @@ class SearchFragment : Fragment() {
     }
 
     private fun containerOnlyOnce() {
-                //___________________________________________________________________
-                if (SaveStateMapObj.visibilityContainer == null) {
-                    thisContainer?.let {
-                        thread {
-                            Thread.sleep(1500)
-                            requireActivity().runOnUiThread {
+        //___________________________________________________________________
+        if (SaveStateMapObj.visibilityContainer == null) {
+            thisContainer?.let {
+                thread {
+                    Thread.sleep(1500)
+                    requireActivity().runOnUiThread {
                         it.isVisible = true
                         SaveStateMapObj.visibilityContainer = true
                         changeIconContainer(it)
