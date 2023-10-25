@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.a26apigooglemap.R
 import com.example.a26apigooglemap.Request.Results
 
+
 class RecyclerAdapter(
     private val clickOnItem: (results: Results) -> Unit = {}
 ) : RecyclerView.Adapter<HolderPlace>() {
@@ -23,7 +24,8 @@ class RecyclerAdapter(
     }
 
     override fun onBindViewHolder(holder: HolderPlace, position: Int) {
-        holder.initView(listItem[position],clickOnItem)
+        holder.initView(listItem[position], clickOnItem)
     }
+
 }
 

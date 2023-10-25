@@ -17,12 +17,15 @@ import com.example.a26apigooglemap.Request.PlacesResponse
 import com.example.a26apigooglemap.Request.Results
 import com.example.a26apigooglemap.databinding.FragmentSearchBinding
 import com.example.a26apigooglemap.recyclerView.RecyclerAdapter
-import com.example.a26apigooglemap.toast
 import kotlin.concurrent.thread
+
+interface Marker {
+    fun smoothPosition(name: String)
+}
 
 private const val KEY_BUNDLE = "SearchFragment"
 
-class SearchFragment : Fragment() {
+class SearchFragment : Fragment(), Marker {
     private lateinit var binding: FragmentSearchBinding
     private var placesResponse: PlacesResponse? = null
     private lateinit var adapter: RecyclerAdapter
@@ -53,7 +56,8 @@ class SearchFragment : Fragment() {
     private fun getModel(results: Results) {
         val map = parentFragmentManager.findFragmentById(R.id.map_fragment_container) as Map
         val location = "${results.geometry.location.lat},${results.geometry.location.lng}"
-        map.animationCameraMap(locationFoZoom = location, zoom = 15f)
+        val namePlace = results.name
+        map.animationCameraMap(locationFoZoom = location, zoom = 15f, namePlace = namePlace)
 
     }
 
@@ -66,7 +70,7 @@ class SearchFragment : Fragment() {
     private fun containerOnlyOnce() {
         thread {
             Thread.sleep(1500)
-            requireActivity().runOnUiThread{
+            requireActivity().runOnUiThread {
                 //___________________________________________________________________
                 if (SaveStateMapObj.visibilityContainer == null) {
                     thisContainer?.let {
@@ -126,4 +130,11 @@ class SearchFragment : Fragment() {
         }
     }
 
+    override fun smoothPosition(name: String) {
+        placesResponse?.let { placesResponse ->
+            val resultSingle = placesResponse.results.filter { it.name == name }[0]
+            val index = placesResponse.results.indexOf(resultSingle)
+            binding.recycler.smoothScrollToPosition(index)
+        }
+    }
 }
