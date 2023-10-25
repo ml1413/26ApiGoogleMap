@@ -2,6 +2,7 @@ package com.example.a26apigooglemap.fragment
 
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -39,7 +40,8 @@ class SearchFragment : Fragment() {
         containerOnlyOnce()
         val map = parentFragmentManager.findFragmentById(R.id.map_fragment_container) as Map
         map.getMapAsync {
-            it.setOnMarkerClickListener { marker ->
+           it.setOnMarkerClickListener { marker ->
+               binding.recycler
                 placesResponse?.let { placesResponse ->
                     val resultSingle = placesResponse.results.filter { it.name == marker.title }[0]
                     val index = placesResponse.results.indexOf(resultSingle)
