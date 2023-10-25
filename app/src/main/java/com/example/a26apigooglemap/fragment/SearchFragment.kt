@@ -38,26 +38,10 @@ class SearchFragment : Fragment() {
         initField()
         setListInRecyclerViewAdapter()
         containerOnlyOnce()
-
-        val map = parentFragmentManager.findFragmentById(R.id.map_fragment_container) as Map
-        map.getMapAsync {
-            it.setOnMarkerClickListener { marker ->
-                binding.recycler
-                placesResponse?.let { placesResponse ->
-                    val name = marker.title
-                    if (name?.isBlank() == true) {
-                        toast(requireContext(), "неизвестное место !!")
-                    } else {
-                        val resultSingle = placesResponse.results.filter { it.name == name }[0]
-                        val index = placesResponse.results.indexOf(resultSingle)
-                        binding.recycler.smoothScrollToPosition(index)
-                    }
-                }
-                false
-            }
-        }
+        showPhotoIfClickMarker()
         return binding.root
     }
+
 
     private fun initField() {
         placesResponse = getPlacesResponseArgument()
@@ -145,5 +129,24 @@ class SearchFragment : Fragment() {
         }
     }
 
+    private fun showPhotoIfClickMarker() {
+        val map = parentFragmentManager.findFragmentById(R.id.map_fragment_container) as Map
+        map.getMapAsync {
+            it.setOnMarkerClickListener { marker ->
+                binding.recycler
+                placesResponse?.let { placesResponse ->
+                    val name = marker.title
+                    if (name?.isBlank() == true) {
+                        toast(requireContext(), "неизвестное место !!")
+                    } else {
+                        val resultSingle = placesResponse.results.filter { it.name == name }[0]
+                        val index = placesResponse.results.indexOf(resultSingle)
+                        binding.recycler.smoothScrollToPosition(index)
+                    }
+                }
+                false
+            }
+        }
+    }
 
 }
