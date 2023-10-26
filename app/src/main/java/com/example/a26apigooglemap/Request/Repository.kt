@@ -1,13 +1,15 @@
 package com.example.a26apigooglemap.Request
 
-import android.util.Log
 import retrofit2.Response
 
 
 class Repository(private val client: ApiClient) {
     private val apiInterface = client.retrofit.create(ApiInterface::class.java)
-    suspend fun getSimpleRoutes(): Response<DirectionsResponse> {
-        return apiInterface.getSimpleRoutes()
+    suspend fun getSimpleRoutes(
+        currentLication: String,
+        destination: String
+    ): Response<DirectionsResponse> {
+        return apiInterface.getSimpleRoutes(currentLication, destination)
     }
 
     suspend fun getNearbyPlaces(location: String, radius: String): Response<PlacesResponse> {

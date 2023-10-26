@@ -3,13 +3,16 @@ package com.example.a26apigooglemap.fragment
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -22,6 +25,8 @@ import com.example.a26apigooglemap.Request.PlacesResponse
 import com.example.a26apigooglemap.databinding.MapFragmentBinding
 import com.example.a26apigooglemap.toast
 import com.example.a26apigooglemap.viewModel.MapViewModel
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.concurrent.thread
 
@@ -29,6 +34,8 @@ object SaveStateMapObj {
     var visibilityContainer: Boolean? = null
     var alphaFab = 0f
     var radius = "2000"
+    var currentLocation = ""
+    var locationOnMapMarker = ""
 }
 
 @AndroidEntryPoint
@@ -36,6 +43,7 @@ class MapFragment : Fragment() {
     private lateinit var viewModel: MapViewModel
     private lateinit var binding: MapFragmentBinding
     private lateinit var map: Map
+    private lateinit var fusedLocation: FusedLocationProviderClient
     private var exportData = false
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -52,6 +60,7 @@ class MapFragment : Fragment() {
         showHideContainerFromBundle()
         showFabFromVisibilityObj()
         setValueInTVRadius(SaveStateMapObj.radius)
+        clickSelfLocation()
         viewModel.uiState.observe(viewLifecycleOwner) { uiState ->
             when (uiState) {
                 MapViewModel.UiState.Empty -> Unit
@@ -61,6 +70,43 @@ class MapFragment : Fragment() {
             }
         }
         return binding.root
+    }
+
+    private fun clickSelfLocation() {
+        binding.ivLocation.setOnClickListener {
+            location()
+        }
+    }
+
+    private fun location() {
+        val tack = fusedLocation.lastLocation
+
+        val selfPermission = ActivityCompat
+            .checkSelfPermission(
+                requireContext(),
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        val selfPermission2 = ActivityCompat
+            .checkSelfPermission(requireContext(), android.Manifest.permission.ACCESS_FINE_LOCATION)
+
+        val permissionGradient = PackageManager.PERMISSION_GRANTED
+
+        if (selfPermission != permissionGradient && selfPermission2 != permissionGradient) {
+            ActivityCompat.requestPermissions(
+                requireActivity(), arrayOf(
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION
+                ), 123
+            )
+            return
+        }
+        tack.addOnSuccessListener {
+            if (it != null) {
+               SaveStateMapObj.currentLocation  =   "${it.latitude},${it.longitude}"
+                map.animationCameraMap(SaveStateMapObj.currentLocation, namePlace = "Вы")
+                binding.etLocation.setText(SaveStateMapObj.currentLocation)
+            }
+        }
     }
 
 
@@ -106,7 +152,7 @@ class MapFragment : Fragment() {
     private fun initField() {
         childFragmentManager.findFragmentById(R.id.map_fragment_container).let { map = it as Map }
         viewModel = ViewModelProvider(this)[MapViewModel::class.java]
-
+        fusedLocation = LocationServices.getFusedLocationProviderClient(requireActivity())
     }
 
 

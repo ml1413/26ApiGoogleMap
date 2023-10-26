@@ -16,8 +16,9 @@ class HolderPlace(private val view: View) : RecyclerView.ViewHolder(view) {
     private val binding = ItemPhotoBinding.bind(view)
     fun initView(results: Results, clickOnItem: (results: Results) -> Unit) {
         binding.tv.text = results.name
+        val reference = if (results.photos!=null) results.photos[0].photo_reference else ""
         Glide.with(view.context)
-            .load(URL_IN + "${results.photos[0].photo_reference}" + URL_END)
+            .load(URL_IN + reference + URL_END)
             .placeholder(R.drawable.baseline_image_search_24)
             .into(binding.itemPhoto)
 

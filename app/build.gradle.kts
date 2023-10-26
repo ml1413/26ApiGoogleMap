@@ -57,7 +57,6 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     //decoderPolyline
     implementation("com.google.maps.android:android-maps-utils:0.5")
-//    implementation("androidx.benchmark:benchmark-common:1.2.0")
     //viewModel Life
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
     implementation("androidx.fragment:fragment-ktx:1.6.1")
@@ -69,6 +68,8 @@ dependencies {
     implementation ("com.github.bumptech.glide:glide:4.16.0")
     //interceptor
     implementation ("com.squareup.okhttp3:logging-interceptor:4.7.2")
+    //location
+    implementation("com.google.android.gms:play-services-location:21.0.1")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

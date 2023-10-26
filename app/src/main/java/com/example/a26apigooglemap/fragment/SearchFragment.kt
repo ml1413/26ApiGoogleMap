@@ -57,7 +57,7 @@ class SearchFragment : Fragment() {
         val location = "${results.geometry.location.lat},${results.geometry.location.lng}"
         val namePlace = results.name
         map.animationCameraMap(locationFoZoom = location, zoom = 15f, namePlace = namePlace)
-
+        SaveStateMapObj.locationOnMapMarker = location
     }
 
 
@@ -133,15 +133,21 @@ class SearchFragment : Fragment() {
         val map = parentFragmentManager.findFragmentById(R.id.map_fragment_container) as Map
         map.getMapAsync {
             it.setOnMarkerClickListener { marker ->
-                binding.recycler
                 placesResponse?.let { placesResponse ->
+                    SaveStateMapObj.locationOnMapMarker =
+                        "${marker.position.latitude},${marker.position.longitude}"
                     val name = marker.title
                     if (name?.isBlank() == true) {
-                        toast(requireContext(), "неизвестное место !!")
+                        toast(requireContext(), "Неизвестное место !!")
+                    } else if (name == "Вы") {
+                        toast(requireContext(), "Ваше место положения  !!")
                     } else {
-                        val resultSingle = placesResponse.results.filter { it.name == name }[0]
-                        val index = placesResponse.results.indexOf(resultSingle)
-                        binding.recycler.smoothScrollToPosition(index)
+                        val resultSingle = placesResponse.results.filter { it.name == name }
+                        if (resultSingle.size == 1) {
+                            val index = placesResponse.results.indexOf(resultSingle[0])
+                            binding.recycler.smoothScrollToPosition(index)
+                        }
+
                     }
                 }
                 false

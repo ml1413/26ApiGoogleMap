@@ -1,14 +1,11 @@
 package com.example.a26apigooglemap.viewModel
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.a26apigooglemap.Request.Repository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Response
 import javax.inject.Inject
@@ -19,10 +16,10 @@ class MapViewModel @Inject constructor(private val repository: Repository) : Vie
     private val _uiState = MutableLiveData<UiState>(UiState.Empty)
     val uiState: LiveData<UiState> = _uiState
 
-    fun getDateRoadsLine() {
+    fun getDateRoadsLine(currentLication: String, destination: String) {
         _uiState.value = UiState.Loading
         viewModelScope.launch {
-            val response = repository.getSimpleRoutes()
+            val response = repository.getSimpleRoutes(currentLication, destination )
             checkResponse(response)
         }
     }
@@ -68,7 +65,6 @@ class MapViewModel @Inject constructor(private val repository: Repository) : Vie
         class Result(val responseBody: Any?) : UiState()
         class Error(val error: String) : UiState()
     }
-
 
 
 }
