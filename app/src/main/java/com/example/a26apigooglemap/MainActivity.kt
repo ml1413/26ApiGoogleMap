@@ -2,8 +2,8 @@ package com.example.a26apigooglemap
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import com.example.a26apigooglemap.databinding.ActivityMainBinding
@@ -12,8 +12,12 @@ import com.example.a26apigooglemap.fragment.SignInFragment
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+interface GetProgressBar {
+    fun getProgressBar(): ProgressBar
+}
+
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), GetProgressBar {
     private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
 
     @Inject
@@ -21,7 +25,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        progressBar = binding.progressbar
         //запуск нужного фрагмента (если аккаунт null франмент с аутентификацией если не null фрагмент с картой)
         launchFragment()
     }
@@ -44,15 +47,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun launchFragment() {
-        if (account.getGoogleAccount() == null) addFragment(SignInFragment(), true)
-        if (account.getGoogleAccount() != null
-            && supportFragmentManager.findFragmentById(R.id.container_fragment) !is MapFragment
-        ) {
-            progressBar.isVisible = true
-            addFragment(MapFragment())
+        //если пользовательне зарешистрирован
+        val signInFragment = supportFragmentManager.findFragmentById(R.id.container_fragment)
+        if (account.getGoogleAccount() == null) {
+            if (signInFragment == null) {
+                addFragment(SignInFragment(), true)
+            }
         }
-
+        //если зарегестрирован______________________________________________________________
+        val mapFragment = supportFragmentManager.findFragmentById(R.id.container_fragment)
+        if (account.getGoogleAccount() != null) {
+            if (mapFragment == null) {
+                binding.progressbar.isVisible = true
+                addFragment(MapFragment())
+            }
+        }
     }
 
+    override fun getProgressBar() = binding.progressbar
 
 }

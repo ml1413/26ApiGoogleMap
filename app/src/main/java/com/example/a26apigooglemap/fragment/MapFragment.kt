@@ -4,7 +4,6 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,12 +14,12 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.example.a26apigooglemap.GetProgressBar
 import com.example.a26apigooglemap.R
 import com.example.a26apigooglemap.Request.ComplexRouteResponse
 import com.example.a26apigooglemap.Request.DirectionsResponse
 import com.example.a26apigooglemap.Request.PlacesResponse
 import com.example.a26apigooglemap.databinding.MapFragmentBinding
-import com.example.a26apigooglemap.progressBar
 import com.example.a26apigooglemap.toast
 import com.example.a26apigooglemap.viewModel.MapViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -44,7 +43,7 @@ class MapFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = MapFragmentBinding.inflate(inflater, container, false)
-        progressBar.isVisible = false
+        progressBarVisibilityOff()
         initField()
         clickOnSearch()
         clickOnFab()
@@ -63,6 +62,7 @@ class MapFragment : Fragment() {
         }
         return binding.root
     }
+
 
     private fun clickOnRadius() {
         binding.ivRadius.setOnClickListener {
@@ -91,7 +91,7 @@ class MapFragment : Fragment() {
     }
 
     private fun setValueInTVRadius(radius: String) {
-        binding.tvRadius.text = resources.getString(R.string.radius,"")
+        binding.tvRadius.text = resources.getString(R.string.radius, "")
         thread {
             radius.split("")
                 .forEach { leter ->
@@ -231,6 +231,9 @@ class MapFragment : Fragment() {
         }
     }
 
+    private fun progressBarVisibilityOff() {
+        (requireActivity() as GetProgressBar).getProgressBar().isVisible = false
+    }
 
     private fun showError(error: String) {
         toast(requireContext(), error)

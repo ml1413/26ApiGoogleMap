@@ -37,7 +37,7 @@ class GAccount @Inject constructor(@ApplicationContext private val context: Cont
             auth.signInWithCredential(credential)
                 .addOnCompleteListener {
                     success(it.isSuccessful)
-                    if (it.isSuccessful) toast(context,"Successful")
+                    if (it.isSuccessful) toast(context,"Выполняется вход")
                     if (!it.isSuccessful) toast(context,"Firebase Error")
                 }
         } catch (e: ApiException) {

@@ -2,6 +2,7 @@ package com.example.a26apigooglemap.fragment
 
 import android.animation.ObjectAnimator
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -49,5 +50,6 @@ class SignInFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         animator.cancel()
+        Log.d("TAG1", "onDestroy: $this")
     }
 }
