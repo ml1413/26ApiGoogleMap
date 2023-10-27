@@ -78,7 +78,7 @@ class MapFragment : Fragment() {
         }
     }
 
-    private fun location() {
+    private fun     location() {
         val tack = fusedLocation.lastLocation
 
         val selfPermission = ActivityCompat
