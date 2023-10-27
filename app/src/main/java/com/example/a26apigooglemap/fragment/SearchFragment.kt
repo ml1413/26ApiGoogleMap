@@ -28,8 +28,7 @@ class SearchFragment : Fragment() {
     private lateinit var adapter: RecyclerAdapter
     private var thisContainer: FragmentContainerView? = null
     private var iVShowHideKeyboard: ImageView? = null
-    private lateinit var mapFragment: Fragment
-
+    private lateinit var mapFragment: MapFragment
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -47,9 +46,10 @@ class SearchFragment : Fragment() {
         placesResponse = getPlacesResponseArgument()
         adapter = RecyclerAdapter { model -> getModel(model) }
         PagerSnapHelper().apply { attachToRecyclerView(binding.recycler) }
-        parentFragment?.let { mapFragment = it }
+        parentFragment?.let { mapFragment = it as MapFragment }
         thisContainer = mapFragment.view?.rootView?.findViewById(R.id.search_fragment_container)
         iVShowHideKeyboard = mapFragment.view?.rootView?.findViewById(R.id.iv_show_container)
+
     }
 
     private fun getModel(results: Results) {
@@ -58,6 +58,7 @@ class SearchFragment : Fragment() {
         val namePlace = results.name
         map.animationCameraMap(locationFoZoom = location, zoom = 15f, namePlace = namePlace)
         SaveStateMapObj.locationOnMapMarker = location
+        mapFragment.showFab()
     }
 
 
@@ -139,7 +140,7 @@ class SearchFragment : Fragment() {
                     val name = marker.title
                     if (name?.isBlank() == true) {
                         toast(requireContext(), "Неизвестное место !!")
-                    } else if (name == "Вы") {
+                    } else if (name == resources.getString(R.string.You)) {
                         toast(requireContext(), "Ваше место положения  !!")
                     } else {
                         val resultSingle = placesResponse.results.filter { it.name == name }
@@ -147,7 +148,7 @@ class SearchFragment : Fragment() {
                             val index = placesResponse.results.indexOf(resultSingle[0])
                             binding.recycler.smoothScrollToPosition(index)
                         }
-
+                        mapFragment.showFab()
                     }
                 }
                 false

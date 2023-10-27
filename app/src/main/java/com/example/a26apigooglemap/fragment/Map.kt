@@ -1,5 +1,7 @@
 package com.example.a26apigooglemap.fragment
 
+import android.graphics.Color
+import com.example.a26apigooglemap.R
 import com.example.a26apigooglemap.Request.ComplexRouteResponse
 import com.example.a26apigooglemap.Request.DirectionsResponse
 import com.example.a26apigooglemap.Request.PlacesResponse
@@ -11,7 +13,7 @@ import com.google.android.gms.maps.model.PolylineOptions
 import com.google.maps.android.PolyUtil
 
 object CoordinateLatLng {
-    val coordinateLatLng = mutableListOf<LatLng>()
+    val coordinateLatLng = mutableMapOf<String, LatLng>()
     val placeCoordinate = mutableListOf<String>()
 }
 
@@ -24,32 +26,42 @@ class Map : SupportMapFragment() {
             val decodePath = PolyUtil.decode(playLinePoints)
             val polygonOptions = PolylineOptions().addAll(decodePath)
             googleMap.addPolyline(polygonOptions)
-            CoordinateLatLng.coordinateLatLng.forEach { latlng ->
-                val coordinates = LatLng(
-                    latlng.latitude,
-                    latlng.longitude
-                )
-                googleMap.addMarker(MarkerOptions().position(coordinates))
+            CoordinateLatLng.coordinateLatLng.forEach { mapSL ->
+
+                googleMap.addMarker(MarkerOptions().position(mapSL.value))
             }
         }
     }
 
     fun showMapNearbyPlaces(placesResponse: PlacesResponse) {
+        addValueInCoordinateLatLng(placesResponse)
+        showPlaceMarkerOnMap()
+    }
+
+    private fun showPlaceMarkerOnMap() {
         getMapAsync { googleMap ->
-            placesResponse.results.forEach { results ->
-                val coordinates = LatLng(
-                    results.geometry.location.lat,
-                    results.geometry.location.lng
-                )
-                val namePlace = results.name
-                CoordinateLatLng.coordinateLatLng.add(coordinates)
-                CoordinateLatLng.placeCoordinate
-                    .add("${results.geometry.location.lat},${results.geometry.location.lng}")
-                googleMap.addMarker(MarkerOptions().position(coordinates))
-                    .apply { this?.let { title = namePlace } }
+            CoordinateLatLng.coordinateLatLng.forEach { mapSL ->
+                googleMap.addMarker(MarkerOptions().position(mapSL.value)).apply {
+                    this?.let { title = mapSL.key }
+                }
             }
         }
+    }
 
+    private fun addValueInCoordinateLatLng(placesResponse: PlacesResponse) {
+        placesResponse.results.forEach { results ->
+            // мап имя и координвты
+            CoordinateLatLng.coordinateLatLng
+                .put(
+                    results.name, (LatLng(
+                        results.geometry.location.lat,
+                        results.geometry.location.lng
+                    ))
+                )
+            // данные для построения множества дорог
+            CoordinateLatLng.placeCoordinate
+                .add("${results.geometry.location.lat},${results.geometry.location.lng}")
+        }
     }
 
 
@@ -70,20 +82,22 @@ class Map : SupportMapFragment() {
 
     fun showMapBuildLine(directionsResponse: DirectionsResponse) {
         getMapAsync { googleMap ->
-//            val coordination_Lviv = LatLng(50.448416998675064, 30.51926643231341)
-//            googleMap.addMarker(MarkerOptions().position(coordination_Lviv))
-//            //приблизить камеру
-//            // конечная точка маршрута
-//            val coordinationIvanof = LatLng(48.92150140584221, 24.710288162822817)
-//            googleMap.addMarker(MarkerOptions().position(coordinationIvanof))
+            //TODO работает но нужно переделать
+            //________________________________________________
+            googleMap.clear()
 
-//            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(coordination_Lviv, 8f))
+            showPlaceMarkerOnMap()
+            animationCameraMap(
+                SaveStateMapObj.currentLocation,
+                namePlace = resources.getString(R.string.You)
+            )
+            //______________________________________________________________
 
             val polyLine = directionsResponse.routes[0].overview_polyline.points
-
-                val decodePath = PolyUtil.decode(polyLine)
-            val polygonOptions = PolylineOptions().addAll(decodePath)
-            googleMap.addPolyline(polygonOptions)
+            val decodePath = PolyUtil.decode(polyLine)
+            val polygonOptions = PolylineOptions()
+            polygonOptions.addAll(decodePath)
+            googleMap.addPolyline(polygonOptions).color = Color.CYAN
         }
     }
 

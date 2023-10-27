@@ -16,13 +16,7 @@ class MapViewModel @Inject constructor(private val repository: Repository) : Vie
     private val _uiState = MutableLiveData<UiState>(UiState.Empty)
     val uiState: LiveData<UiState> = _uiState
 
-    fun getDateRoadsLine(currentLication: String, destination: String) {
-        _uiState.value = UiState.Loading
-        viewModelScope.launch {
-            val response = repository.getSimpleRoutes(currentLication, destination )
-            checkResponse(response)
-        }
-    }
+
 
     fun getDataNearbyPlaces(location: String, radius: String) {
         _uiState.value = UiState.Loading

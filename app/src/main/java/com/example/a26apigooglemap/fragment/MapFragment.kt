@@ -5,7 +5,6 @@ import android.animation.ObjectAnimator
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,6 +23,7 @@ import com.example.a26apigooglemap.Request.DirectionsResponse
 import com.example.a26apigooglemap.Request.PlacesResponse
 import com.example.a26apigooglemap.databinding.MapFragmentBinding
 import com.example.a26apigooglemap.toast
+import com.example.a26apigooglemap.viewModel.MapRoadLineViewMode
 import com.example.a26apigooglemap.viewModel.MapViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -41,6 +41,7 @@ object SaveStateMapObj {
 @AndroidEntryPoint
 class MapFragment : Fragment() {
     private lateinit var viewModel: MapViewModel
+    private lateinit var viewModelRoadLine: MapRoadLineViewMode
     private lateinit var binding: MapFragmentBinding
     private lateinit var map: Map
     private lateinit var fusedLocation: FusedLocationProviderClient
@@ -61,6 +62,9 @@ class MapFragment : Fragment() {
         showFabFromVisibilityObj()
         setValueInTVRadius(SaveStateMapObj.radius)
         clickSelfLocation()
+        isShowMyLocationOnMap()
+
+        //___________________________________________________________________________
         viewModel.uiState.observe(viewLifecycleOwner) { uiState ->
             when (uiState) {
                 MapViewModel.UiState.Empty -> Unit
@@ -69,14 +73,53 @@ class MapFragment : Fragment() {
                 is MapViewModel.UiState.Error -> showError(uiState.error)
             }
         }
+        //___________________________________________________________________________
+        viewModelRoadLine._uiState.observe(viewLifecycleOwner) { uiStateRL ->
+            when (uiStateRL) {
+                MapRoadLineViewMode.UiStateRL.Empty -> Unit
+                MapRoadLineViewMode.UiStateRL.Loading -> showProgressBar()
+                is MapRoadLineViewMode.UiStateRL.Result -> whenResponse(uiStateRL.directionsResponse)
+                is MapRoadLineViewMode.UiStateRL.Error -> showError(uiStateRL.error)
+            }
+        }
         return binding.root
     }
+
+    private fun isShowMyLocationOnMap() {
+        if (SaveStateMapObj.currentLocation.isNotBlank()) {
+            map.animationCameraMap(
+                SaveStateMapObj.currentLocation,
+                namePlace = resources.getString(R.string.You)
+            )
+        }
+    }
+
+    private fun initField() {
+        childFragmentManager.findFragmentById(R.id.map_fragment_container).let { map = it as Map }
+        viewModel = ViewModelProvider(this)[MapViewModel::class.java]
+        viewModelRoadLine = ViewModelProvider(this)[MapRoadLineViewMode::class.java]
+        fusedLocation = LocationServices.getFusedLocationProviderClient(requireActivity())
+    }
+
+    private fun whenResponse(responseBody: Any?) {
+        when (responseBody) {
+            is DirectionsResponse -> map.showMapBuildLine(responseBody)
+            is PlacesResponse -> {
+                map.showMapNearbyPlaces(responseBody)
+                exportPlacesResponseToSearchFragment(responseBody)
+            }
+
+            is ComplexRouteResponse -> map.showMapComplexRoute(responseBody)
+        }
+    }
+
 
     private fun clickSelfLocation() {
         binding.ivLocation.setOnClickListener {
             location()
         }
     }
+
 
     private fun location() {
         val tack = fusedLocation.lastLocation
@@ -102,13 +145,16 @@ class MapFragment : Fragment() {
         }
         tack.addOnSuccessListener {
             if (it != null) {
-               SaveStateMapObj.currentLocation  =   "${it.latitude},${it.longitude}"
-                map.animationCameraMap(SaveStateMapObj.currentLocation, namePlace = "Вы")
+                SaveStateMapObj.currentLocation = "${it.latitude},${it.longitude}"
+                map.animationCameraMap(
+                    SaveStateMapObj.currentLocation,
+                    namePlace = resources.getString(R.string.You)
+                )
                 binding.etLocation.setText(SaveStateMapObj.currentLocation)
+                showFab()
             }
         }
     }
-
 
     private fun clickOnRadius() {
         binding.ivRadius.setOnClickListener {
@@ -149,16 +195,11 @@ class MapFragment : Fragment() {
         }
     }
 
-    private fun initField() {
-        childFragmentManager.findFragmentById(R.id.map_fragment_container).let { map = it as Map }
-        viewModel = ViewModelProvider(this)[MapViewModel::class.java]
-        fusedLocation = LocationServices.getFusedLocationProviderClient(requireActivity())
-    }
-
 
     private fun showFabFromVisibilityObj() {
         binding.fab.alpha = SaveStateMapObj.alphaFab
     }
+
 
     private fun clickIvShowHideContainer() {
         binding.ivShowContainer.setOnClickListener {
@@ -177,36 +218,30 @@ class MapFragment : Fragment() {
         changeIconIVShowHideContainer(binding.searchFragmentContainer)
     }
 
+
     private fun showHideContainerFromBundle() {
         // восстановление состояния контэйнера из бандл
         SaveStateMapObj.visibilityContainer?.let { binding.searchFragmentContainer.isVisible = it }
         changeIconIVShowHideContainer(binding.searchFragmentContainer)
     }
 
-
-    private fun whenResponse(responseBody: Any?) {
-        when (responseBody) {
-            is DirectionsResponse -> map.showMapBuildLine(responseBody)
-            is PlacesResponse -> {
-                map.showMapNearbyPlaces(responseBody)
-                exportPlacesResponseToSearchFragment(responseBody)
-            }
-
-            is ComplexRouteResponse -> map.showMapComplexRoute(responseBody)
+    private fun clickOnFab() {
+        binding.fab.setOnClickListener {
+            viewModelRoadLine.getDateRoadsLine(
+                currentLication = SaveStateMapObj.currentLocation,
+                destination = SaveStateMapObj.locationOnMapMarker
+            )
         }
     }
 
-    private fun clickOnFab() {
-        binding.fab.setOnClickListener {
-
-            val waypointCoordinates = CoordinateLatLng.placeCoordinate.drop(0).take(10)
-            val waypointCoordinateString = waypointCoordinates.joinToString(separator = "|")
-            viewModel.getDataComplexRoute(
-                originId = CoordinateLatLng.placeCoordinate[0],
-                destinationId = CoordinateLatLng.placeCoordinate.last(),
-                waypoints = waypointCoordinateString
-            )
-        }
+    private fun getAllRoadsLine() {
+        val waypointCoordinates = CoordinateLatLng.placeCoordinate.drop(0).take(10)
+        val waypointCoordinateString = waypointCoordinates.joinToString(separator = "|")
+        viewModel.getDataComplexRoute(
+            originId = CoordinateLatLng.placeCoordinate[0],
+            destinationId = CoordinateLatLng.placeCoordinate.last(),
+            waypoints = waypointCoordinateString
+        )
     }
 
 
@@ -236,7 +271,6 @@ class MapFragment : Fragment() {
                 //приблизить карту
                 map.animationCameraMap(location)
                 hideKeyboard()
-                showFab()
             } else {
                 toast(requireContext(), getString(R.string.text_not_found))
             }
@@ -244,16 +278,18 @@ class MapFragment : Fragment() {
 
     }
 
-    private fun showFab() {
-        val animator = ObjectAnimator.ofFloat(binding.fab, View.ALPHA, 0f, 1f)
-        animator.duration = 1000
-        animator.startDelay = 1000
-        val animator2 = ObjectAnimator.ofFloat(binding.fab, View.ALPHA, 0.6f, 1f)
-        animator2.repeatCount = 2
-        val setAnimation = AnimatorSet()
-        setAnimation.play(animator).before(animator2)
-        setAnimation.start()
-        SaveStateMapObj.alphaFab = 1f
+    fun showFab() {
+        if (SaveStateMapObj.currentLocation.isNotBlank() && SaveStateMapObj.locationOnMapMarker.isNotBlank()) {
+            val animator = ObjectAnimator.ofFloat(binding.fab, View.ALPHA, 0f, 1f)
+            animator.duration = 1000
+            animator.startDelay = 1000
+            val animator2 = ObjectAnimator.ofFloat(binding.fab, View.ALPHA, 0.6f, 1f)
+            animator2.repeatCount = 2
+            val setAnimation = AnimatorSet()
+            setAnimation.play(animator).before(animator2)
+            setAnimation.start()
+            SaveStateMapObj.alphaFab = 1f
+        }
     }
 
     private fun hideKeyboard() {
