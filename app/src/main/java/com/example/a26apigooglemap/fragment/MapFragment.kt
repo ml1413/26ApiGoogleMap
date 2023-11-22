@@ -3,8 +3,11 @@ package com.example.a26apigooglemap.fragment
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -132,9 +135,9 @@ class MapFragment : Fragment() {
         val selfPermission2 = ActivityCompat
             .checkSelfPermission(requireContext(), android.Manifest.permission.ACCESS_FINE_LOCATION)
 
-        val permissionGradient = PackageManager.PERMISSION_GRANTED
+        val permissionGranted = PackageManager.PERMISSION_GRANTED
 
-        if (selfPermission != permissionGradient && selfPermission2 != permissionGradient) {
+        if (selfPermission != permissionGranted && selfPermission2 != permissionGranted) {
             ActivityCompat.requestPermissions(
                 requireActivity(), arrayOf(
                     android.Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -144,7 +147,11 @@ class MapFragment : Fragment() {
             return
         }
         tack.addOnSuccessListener {
-            if (it != null) {
+
+            if (it == null) {
+                startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                toast(requireContext(),"Location must be on")
+            } else {
                 SaveStateMapObj.currentLocation = "${it.latitude},${it.longitude}"
                 map.animationCameraMap(
                     SaveStateMapObj.currentLocation,
