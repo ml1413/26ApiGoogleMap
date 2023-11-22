@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -150,7 +149,7 @@ class MapFragment : Fragment() {
 
             if (it == null) {
                 startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-                toast(requireContext(),"Location must be on")
+                toast(requireContext(), "Location must be on")
             } else {
                 SaveStateMapObj.currentLocation = "${it.latitude},${it.longitude}"
                 map.animationCameraMap(
@@ -268,6 +267,7 @@ class MapFragment : Fragment() {
 
     private fun clickOnSearch() {
         binding.ivSearch.setOnClickListener {
+            map.getMapAsync { it.clear() }
             //разрешение на передачу данных только 1 раз
             exportData = true
             //запрос по геолокации
